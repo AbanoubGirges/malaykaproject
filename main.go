@@ -1,9 +1,16 @@
 package main
 
 import (
-	"fmt"
+	"os"
+	"github.com/joho/godotenv"
+	"log"
 )
 
 func main(){
-fmt.Println("working")
+godotenv.Load(".env")
+portForServer:=os.Getenv("PORT")
+if portForServer==""{ 
+	log.Println("Failed to get PORT from .env file")
+	return
+}
 }

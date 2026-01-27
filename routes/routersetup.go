@@ -1,0 +1,33 @@
+package routes
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+
+	"github.com/AbanoubGirges/malaykaproject/controllers"
+	"github.com/AbanoubGirges/malaykaproject/services"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
+)
+func SetupRouter(portForServer string) *chi.Mux{
+	Router:=chi.NewRouter()
+	Router.Use(middleware.Logger)
+	Router.Use(cors.Handler(cors.Options{
+		AllowedOrigins:     []string{"*"},
+		AllowedMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:     []string{"*"},
+		ExposedHeaders:    []string{"*"},
+		AllowCredentials: true,
+	}))
+	err:=http.ListenAndServe(fmt.Sprintf(":%d",portForServer),Router)
+	
+	if err!=nil{
+		log.Fatal("Failed to start server:", err.Error())
+	}
+	println("Server will start at port:", portForServer)
+	Router.Get("/ready",func(w http.ResponseWriter, r *http.Request) {services.RespondWithJson(w,200,struct{}{})})
+	Router.Post("/signup",controllers.SignupHandler)		
+	return Router
+}
