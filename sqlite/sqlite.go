@@ -40,3 +40,10 @@ func FetchUserLogin(phoneNumber string, db *gorm.DB, ctx context.Context, passwo
 	}
 	return user, nil
 }
+func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+	var class models.ClassInDatabase
+	result := db.WithContext(dbCtx).Create(&class)
+	return result.Error
+}
