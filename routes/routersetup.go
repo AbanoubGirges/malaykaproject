@@ -28,6 +28,7 @@ func SetupRouter(portForServer string) *chi.Mux{
 	}
 	println("Server will start at port:", portForServer)
 	Router.Get("/ready",func(w http.ResponseWriter, r *http.Request) {services.RespondWithJson(w,200,struct{}{})})
-	Router.Post("/signup",controllers.SignupHandler)		
+	Router.Post("/signup",controllers.SignupHandler)	
+	Router.Get("/login",controllers.LoginHandler)	
 	return Router
 }
