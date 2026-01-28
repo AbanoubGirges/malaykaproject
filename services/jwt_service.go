@@ -2,11 +2,20 @@ package services
 
 import (
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/AbanoubGirges/malaykaproject/models"
 )
+var SecretKey string
+func TakeSecretKey(key string){
+	SecretKey=key
+}
 
-func GenerateJWT(userID uint, secretKey string) (string, error) {
+func GenerateJWT(user models.UserInDatabase, secretKey string) (string, error) {
 	claims := jwt.MapClaims{}
-	claims["user_id"] = userID
+	claims["user_id"] = user.ID
+	claims["name"] = user.Name
+	//claims["phone_number"] = user.PhoneNumber
+	claims["role"] = user.Role
+	claims["class"] = user.Class
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	signedToken, err := token.SignedString([]byte(secretKey))
 	if err != nil {

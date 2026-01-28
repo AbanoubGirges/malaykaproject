@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -21,6 +22,16 @@ func main() {
 		log.Println("Failed to get PORT from .env file")
 		return
 	}
+	secretKey := os.Getenv("SECRET_KEY")
+	if secretKey == "" {
+		log.Println("Failed to get SECRET_KEY from .env file")
+		return
+	}
+	services.TakeSecretKey(secretKey)
 	router := routes.SetupRouter(portForServer)
-	http.ListenAndServe(":"+portForServer, router)
+	err := http.ListenAndServe(fmt.Sprintf(":%s", portForServer), router)
+
+	if err != nil {
+		log.Fatal("Failed to start server:", err.Error())
+	}
 }

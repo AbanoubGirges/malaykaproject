@@ -1,8 +1,7 @@
 package routes
 
 import (
-	"fmt"
-	"log"
+	
 	"net/http"
 
 	"github.com/AbanoubGirges/malaykaproject/controllers"
@@ -21,11 +20,6 @@ func SetupRouter(portForServer string) *chi.Mux{
 		ExposedHeaders:    []string{"*"},
 		AllowCredentials: true,
 	}))
-	err:=http.ListenAndServe(fmt.Sprintf(":%d",portForServer),Router)
-	
-	if err!=nil{
-		log.Fatal("Failed to start server:", err.Error())
-	}
 	println("Server will start at port:", portForServer)
 	Router.Get("/ready",func(w http.ResponseWriter, r *http.Request) {services.RespondWithJson(w,200,struct{}{})})
 	Router.Post("/signup",controllers.SignupHandler)	

@@ -2,3 +2,5 @@
 malaykaproject
 /vendor
 /sqlite/malaykadb
+malayka.db
+*.log
