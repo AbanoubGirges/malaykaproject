@@ -13,6 +13,6 @@ type ClassInDatabase struct {
 	gorm.Model
 	ID   uint32 `gorm:"primaryKey"`
 	Name string
-	KhademID string
-	StudentID string
+	//KhademID string
+	//StudentID string
 }

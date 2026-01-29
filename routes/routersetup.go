@@ -26,5 +26,6 @@ func SetupRouter(portForServer string) *chi.Mux {
 	Router.Post("/signup", controllers.SignupHandler)
 	Router.Get("/login", controllers.LoginHandler)
 	Router.Post("/createclass", custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.CreateClassHandler)).ServeHTTP)
+	Router.Get("/readclass",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.ReadClassHandler)).ServeHTTP)
 	return Router
 }

@@ -43,7 +43,24 @@ func FetchUserLogin(phoneNumber string, db *gorm.DB, ctx context.Context, passwo
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
-	var class models.ClassInDatabase
-	result := db.WithContext(dbCtx).Create(&class)
+
+	// Create a table specific to the class
+	tableName := "class_" + className
+	sql := `CREATE TABLE IF NOT EXISTS ` + tableName + ` (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+    )`
+
+	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
+}
+func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.ClassInDatabase, error) {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	var classes []models.ClassInDatabase
+	result := db.WithContext(dbCtx).Table(className).Find(&classes)
+	if result.Error != nil {
+		return nil, result.Error
+	}
+	return classes, nil
 }
