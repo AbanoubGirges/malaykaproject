@@ -5,7 +5,7 @@ type User struct {
 	Username string `json:"username"`
 	PhoneNumber    string `json:"phone_number"`
 	Password string `json:"password"`
-	Role     uint 
+	Role     string 
 	Class    uint
 }
 type UserLoginRequest struct {

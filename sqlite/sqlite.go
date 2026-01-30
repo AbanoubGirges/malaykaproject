@@ -42,13 +42,14 @@ func FetchUserLogin(phoneNumber string, db *gorm.DB, ctx context.Context, passwo
 	}
 	return user, nil
 }
+//TODO: update and delete user functions
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 	classId:=strconv.FormatUint(uint64(uuid.New().ID()),10)
 	// Create a table specific to the class
 	//tableName := "class_" + className
-	sql := `INSERT INTO TABLE classes(
+	sql := `INSERT INTO class_in_database(
         id ,name) VALUES (`+classId+`,"`+className+`");`
 
 	result := db.WithContext(dbCtx).Exec(sql)
@@ -59,7 +60,7 @@ func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.Use
 	defer cancel()
 	var class models.ClassInDatabase
 	var students []models.UserInDatabase
-	classId := db.WithContext(dbCtx).Table("classes").Where("name=?",className).Find(&class)
+	classId := db.WithContext(dbCtx).Table("class_in_database").Where("name=?",className).Find(&class)
 	if classId.Error != nil {
 		return nil, classId.Error
 	}
@@ -73,14 +74,14 @@ func DeleteClassFromDatabase(className string, db *gorm.DB, ctx context.Context)
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
 	//tableName := "class_" + className
-	sql := `DELETE FROM classes WHERE name = "`+className+`";`
+	sql := `DELETE FROM class_in_database WHERE name = "`+className+`";`
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
 func UpdateClassInDatabase(oldClassName string, newClassName string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
 	defer cancel()
-	sql:= `UPDATE classes SET name = "`+newClassName+`" WHERE name = "`+oldClassName+`";`
+	sql:= `UPDATE class_in_database SET name = "`+newClassName+`" WHERE name = "`+oldClassName+`";`
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
