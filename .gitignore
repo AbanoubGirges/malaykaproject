@@ -3,4 +3,5 @@ malaykaproject
 /vendor
 /sqlite/malaykadb
 malayka.db
+malaykadb.db
 *.log

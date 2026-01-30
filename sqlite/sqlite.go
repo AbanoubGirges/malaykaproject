@@ -3,15 +3,17 @@ package migrations
 import (
 	"context"
 	"errors"
+	"strconv"
 	"time"
 
 	"github.com/AbanoubGirges/malaykaproject/models"
+	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
 )
 
 func SetupDatabase() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("malayka.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("malaykadb.db"), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect database")
 	}
@@ -43,24 +45,42 @@ func FetchUserLogin(phoneNumber string, db *gorm.DB, ctx context.Context, passwo
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
-
+	classId:=strconv.FormatUint(uint64(uuid.New().ID()),10)
 	// Create a table specific to the class
-	tableName := "class_" + className
-	sql := `CREATE TABLE IF NOT EXISTS ` + tableName + ` (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL,
-    )`
+	//tableName := "class_" + className
+	sql := `INSERT INTO TABLE classes(
+        id ,name) VALUES (`+classId+`,"`+className+`");`
 
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
-func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.ClassInDatabase, error) {
+func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.UserInDatabase, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
-	var classes []models.ClassInDatabase
-	result := db.WithContext(dbCtx).Table(className).Find(&classes)
+	var class models.ClassInDatabase
+	var students []models.UserInDatabase
+	classId := db.WithContext(dbCtx).Table("classes").Where("name=?",className).Find(&class)
+	if classId.Error != nil {
+		return nil, classId.Error
+	}
+	result := db.WithContext(dbCtx).Where("class = ?", class.ClassID).Find(&students)
 	if result.Error != nil {
 		return nil, result.Error
 	}
-	return classes, nil
+	return students, nil
+}
+func DeleteClassFromDatabase(className string, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	//tableName := "class_" + className
+	sql := `DELETE FROM classes WHERE name = "`+className+`";`
+	result := db.WithContext(dbCtx).Exec(sql)
+	return result.Error
+}
+func UpdateClassInDatabase(oldClassName string, newClassName string, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	sql:= `UPDATE classes SET name = "`+newClassName+`" WHERE name = "`+oldClassName+`";`
+	result := db.WithContext(dbCtx).Exec(sql)
+	return result.Error
 }

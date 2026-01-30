@@ -6,7 +6,7 @@ import (
 	"github.com/AbanoubGirges/malaykaproject/services"
 )
 
-func AdminAuthMiddleware(next http.Handler) http.Handler {
+func AdminAuthMiddleware(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Implement your admin authentication logic here
 		// For example, check for a specific header or token

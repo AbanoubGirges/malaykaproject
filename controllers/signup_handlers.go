@@ -42,7 +42,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 		services.RequestTimeout(w, r)
 		return
 	default:
-		services.RespondWithJson(w, 201, struct{}{})
+		services.RespondWithJson(w, 201, map[string]interface{}{"message": "User created successfully"})
 	}
 }
 func LoginHandler(w http.ResponseWriter, r *http.Request) {
