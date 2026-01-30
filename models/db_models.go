@@ -16,3 +16,14 @@ type ClassInDatabase struct {
 	//KhademID string
 	//StudentID string
 }
+type StudentInDatabase struct {
+	gorm.Model
+	ID       uint32   
+	Name string 
+	PhoneNumber    string 
+	Location string 
+	Coordinates string 
+	Age 	uint   
+	Class    uint	`gorm:"foreignkey:Class;references:ClassID"`
+	Birthdate string 
+}

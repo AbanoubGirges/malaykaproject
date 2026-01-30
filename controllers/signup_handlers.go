@@ -87,3 +87,23 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	
 }
+func EditProfileHandler(w http.ResponseWriter, r *http.Request) {
+	ctx:= r.Context()
+	requestCtx, cancel:= context.WithTimeout(ctx, 15*time.Second)
+	defer cancel()
+	claims,err:=services.ValidateJWT(w.Header().Get("Authentication"), services.SecretKey)	
+	if err!=nil{
+		services.RespondWithJson(w,401,struct{error string}{error:"UNAUTHENTICATED"})
+	}
+	editField:=r.URL.Query().Get("field")
+	newValue:=r.URL.Query().Get("value")
+	if editField=="" || newValue==""{
+		services.RespondWithJson(w,400,struct{error string}{error:"MISSING_FIELDS"})
+		return
+	}
+	err=migrations.UpdateUserInDatabaseField(claims["ID"].(uint), editField, newValue, services.DB, requestCtx)
+	if err!=nil{
+		services.RespondWithJson(w,500,struct{error string}{error:"INTERNAL_SERVER_ERROR"})
+		return
+	}
+}

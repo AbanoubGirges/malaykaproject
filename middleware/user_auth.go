@@ -7,7 +7,7 @@ import (
 	"github.com/AbanoubGirges/malaykaproject/services"
 )
 
-func UserAuthMiddleware(next http.Handler) http.Handler {
+func UserAuthMiddleware(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		token := r.Header.Get("Authentication")
 		claims, err := services.ValidateJWT(token, services.SecretKey)

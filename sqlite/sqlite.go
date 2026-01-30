@@ -42,6 +42,18 @@ func FetchUserLogin(phoneNumber string, db *gorm.DB, ctx context.Context, passwo
 	}
 	return user, nil
 }
+func UpdateUserInDatabaseField(id uint, field string, value string, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	result := db.WithContext(dbCtx).Model(&models.UserInDatabase{}).Where("id = ?", id).Update(field, value)
+	return result.Error
+}
+func DeleteUserFromDatabase(id uint, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	result := db.WithContext(dbCtx).Delete(&models.UserInDatabase{}, id)
+	return result.Error
+}
 //TODO: update and delete user functions
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
@@ -83,5 +95,18 @@ func UpdateClassInDatabase(oldClassName string, newClassName string, db *gorm.DB
 	defer cancel()
 	sql:= `UPDATE class_in_database SET name = "`+newClassName+`" WHERE name = "`+oldClassName+`";`
 	result := db.WithContext(dbCtx).Exec(sql)
+	return result.Error
+}
+func CreateStudentInDatabase(student models.StudentInDatabase, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
+	defer cancel()
+	result := db.WithContext(dbCtx).Create(&student)
+	return result.Error
+}
+func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) error{
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
+	defer cancel()
+	var students []models.StudentInDatabase
+	result := db.WithContext(dbCtx).Where("class = ?", classID).Find(&students)
 	return result.Error
 }
