@@ -1,6 +1,7 @@
 package custommiddleware
 
 import (
+	"fmt"
 	"net/http"
 	//"github.com/AbanoubGirges/malaykaproject/controllers"
 	"github.com/AbanoubGirges/malaykaproject/services"
@@ -13,12 +14,14 @@ func AdminAuthMiddleware(next http.Handler) http.HandlerFunc {
 		token := r.Header.Get("Authorization")
 		claims, err := services.ValidateJWT(token, services.SecretKey)
 		if err != nil {
-			services.RespondWithJson(w, 403, struct{ error string }{error: "INVALID_TOKEN"})
+			services.RespondWithJson(w, 403, map[string]string{"error": "INVALID_TOKEN"})
+			fmt.Print("invalid token")
 			return
 		}
-		claimsRole, ok := claims["role"].(uint)
-		if !ok || claimsRole != 1 {
-			services.RespondWithJson(w, 403, struct{ error string }{error: "INVALID_CREDS"})
+		claimsRole, ok := claims["role"]
+		if !ok || claimsRole != "admin" {
+			services.RespondWithJson(w, 403, map[string]string{"error": "INVALID_CREDS"})
+			fmt.Print("invalid creds")
 			return
 		}
 		next.ServeHTTP(w, r)

@@ -15,7 +15,7 @@ func UserAuthMiddleware(next http.Handler) http.HandlerFunc {
 		fmt.Println("token:", token)
 		c, err := services.ValidateJWT(token, services.SecretKey)
 		if err != nil {
-			services.RespondWithJson(w, 401, struct{ error string }{error: "INVALID_TOKEN"})
+			services.RespondWithJson(w, 401, map[string]string{"error": "INVALID_TOKEN"})
 			return
 		}
 		//claims := c.Claims.(jwt.MapClaims)
@@ -25,7 +25,7 @@ func UserAuthMiddleware(next http.Handler) http.HandlerFunc {
 		   claims[k] = v
 		}
 		if claims["user_id"] == nil {
-			services.RespondWithJson(w, 401, struct{ error string }{error: "MISSING_ID_IN_TOKEN"})
+			services.RespondWithJson(w, 401, map[string]string{"error": "MISSING_ID_IN_TOKEN"})
 			return
 		}
 

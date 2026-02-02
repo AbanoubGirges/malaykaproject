@@ -5,7 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"time"
-
+	"fmt"
 	"github.com/AbanoubGirges/malaykaproject/models"
 	"github.com/google/uuid"
 	"gorm.io/driver/sqlite"
@@ -23,7 +23,8 @@ func SetupDatabase() *gorm.DB {
 	db.AutoMigrate(&models.StudentInDatabase{})
 	return db
 }
-//user migrations
+
+// user migrations
 func CreateUserInDatabase(user models.UserInDatabase, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -56,15 +57,15 @@ func DeleteUserFromDatabase(id uint, db *gorm.DB, ctx context.Context) error {
 	result := db.WithContext(dbCtx).Delete(&models.UserInDatabase{}, id)
 	return result.Error
 }
-//class migrations
+
+// class migrations
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
-	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
-	classId:=strconv.FormatUint(uint64(uuid.New().ID()),10)
+	classId := strconv.FormatUint(uint64(uuid.New().ID()), 10)
 	// Create a table specific to the class
 	//tableName := "class_" + className
-	sql := `INSERT INTO class_in_database(
-        id ,name) VALUES (`+classId+`,"`+className+`");`
+	sql := `INSERT INTO class_in_databases(class_id ,name) VALUES (` + classId + `,"` + className + `");`
 
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
@@ -74,7 +75,7 @@ func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.Use
 	defer cancel()
 	var class models.ClassInDatabase
 	var students []models.UserInDatabase
-	classId := db.WithContext(dbCtx).Table("class_in_database").Where("name=?",className).Find(&class)
+	classId := db.WithContext(dbCtx).Table("class_in_database").Where("name=?", className).Find(&class)
 	if classId.Error != nil {
 		return nil, classId.Error
 	}
@@ -85,28 +86,38 @@ func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.Use
 	return students, nil
 }
 func DeleteClassFromDatabase(className string, db *gorm.DB, ctx context.Context) error {
-	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
-	defer cancel()
-	//tableName := "class_" + className
-	sql := `DELETE FROM class_in_database WHERE name = "`+className+`";`
-	result := db.WithContext(dbCtx).Exec(sql)
-	return result.Error
+    dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
+    defer cancel()
+	fmt.Println("Deleting class:", className)
+    result := db.WithContext(dbCtx).Delete(&models.ClassInDatabase{}, "name = ? AND deleted_at IS NULL", className)
+
+    if result.Error != nil {
+        return result.Error
+    }
+
+    if result.RowsAffected == 0 {
+        return fmt.Errorf("no class deleted: row not found or already deleted")
+    }
+
+    return nil
 }
+
 func UpdateClassInDatabase(oldClassName string, newClassName string, db *gorm.DB, ctx context.Context) error {
-	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*15)
 	defer cancel()
-	sql:= `UPDATE class_in_database SET name = "`+newClassName+`" WHERE name = "`+oldClassName+`";`
+	sql := `UPDATE class_in_databases SET name = "` + newClassName + `" WHERE name = "` + oldClassName + `" AND deleted_at IS NULL;`
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
-//student migrations
+
+// student migrations
 func CreateStudentInDatabase(student models.StudentInDatabase, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
 	result := db.WithContext(dbCtx).Create(&student)
 	return result.Error
 }
-func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) error{
+func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	var students []models.StudentInDatabase

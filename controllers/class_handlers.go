@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -12,7 +13,7 @@ import (
 
 func CreateClassHandler(w http.ResponseWriter, r *http.Request){
 	ctx:= r.Context()
-	requestCtx, cancel:= context.WithTimeout(ctx, 15)
+	requestCtx, cancel:= context.WithTimeout(ctx, 15*time.Second)
 	defer cancel()
 	className:= r.URL.Query().Get("class_name")
 	err:=migrations.CreateClassInDatabase(className, services.DB, requestCtx)
@@ -50,9 +51,14 @@ func DeleteClassHandler(w http.ResponseWriter,r *http.Request){
 	requestCtx, cancel:= context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 	className:= r.URL.Query().Get("class_name")
+	if className==""{
+		services.RespondWithJson(w, http.StatusBadRequest, map[string]string{"error": "MISSING_CLASS_NAME"})
+		return
+	}
 	err:=migrations.DeleteClassFromDatabase(className, services.DB, requestCtx)
 	if err != nil {
-		services.RespondWithJson(w, http.StatusInternalServerError, "Failed to delete class")
+		services.RespondWithJson(w, http.StatusInternalServerError, map[string]string{"error": "FAILED_TO_DELETE_CLASS"})
+		fmt.Println(err)
 		return
 	}
 	select{
