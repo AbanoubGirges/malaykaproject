@@ -19,6 +19,6 @@ type Student struct {
 	Location string `json:"location"`
 	Coordinates string `json:"coordinates"`
 	Age 	uint   `json:"age"`
-	Class    uint	`json:"class"`
+	Class    uint   `json:"class"`
 	Birthdate string `json:"birthdate"`
 }

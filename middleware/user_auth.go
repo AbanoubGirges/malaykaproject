@@ -2,7 +2,7 @@ package custommiddleware
 
 import (
 	"context"
-	"fmt"
+	//"fmt"
 	"net/http"
 
 	"github.com/AbanoubGirges/malaykaproject/services"
@@ -10,9 +10,9 @@ import (
 
 func UserAuthMiddleware(next http.Handler) http.HandlerFunc {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		fmt.Println("in middleware")
+		//fmt.Println("in middleware")
 		token := r.Header.Get("Authorization")
-		fmt.Println("token:", token)
+		//fmt.Println("token:", token)
 		c, err := services.ValidateJWT(token, services.SecretKey)
 		if err != nil {
 			services.RespondWithJson(w, 401, map[string]string{"error": "INVALID_TOKEN"})
@@ -29,10 +29,10 @@ func UserAuthMiddleware(next http.Handler) http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("validated token")
+		//fmt.Println("validated token")
 		// Store claims in context
 		ctx := context.WithValue(r.Context(), "claims", claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
-		fmt.Println("after next")
+		//fmt.Println("after next")
 	})
 }

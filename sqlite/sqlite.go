@@ -89,7 +89,7 @@ func DeleteClassFromDatabase(className string, db *gorm.DB, ctx context.Context)
     dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
     defer cancel()
 	fmt.Println("Deleting class:", className)
-    result := db.WithContext(dbCtx).Delete(&models.ClassInDatabase{}, "name = ? AND deleted_at IS NULL", className)
+    result := db.WithContext(dbCtx).Where("name = ? AND deleted_at IS NULL", className).Delete(&models.ClassInDatabase{})
 
     if result.Error != nil {
         return result.Error
@@ -117,12 +117,14 @@ func CreateStudentInDatabase(student models.StudentInDatabase, db *gorm.DB, ctx 
 	result := db.WithContext(dbCtx).Create(&student)
 	return result.Error
 }
-func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) error {
+func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) ([]models.StudentInDatabase, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	var students []models.StudentInDatabase
+	fmt.Println("ReadStudent: Looking for class =", classID)
 	result := db.WithContext(dbCtx).Where("class = ?", classID).Find(&students)
-	return result.Error
+	fmt.Println("ReadStudent: Found", len(students), "students")
+	return students, result.Error
 }
 func DeleteStudentFromDatabase(studentID uint, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
