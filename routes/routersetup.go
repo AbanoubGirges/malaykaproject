@@ -22,11 +22,11 @@ func SetupRouter(portForServer string) *chi.Mux {
 		AllowCredentials: true,
 	}))
 	println("Server will start at port:", portForServer)
-	Router.Get("/ready", func(w http.ResponseWriter, r *http.Request) { services.RespondWithJson(w, 200, struct{}{}) })
+	Router.Get("/ready", func(w http.ResponseWriter, r *http.Request) { services.RespondWithJson(w, 200, struct{Message string}{Message: "Server is ready"}) })
 	Router.Post("/signup", controllers.SignupHandler)
 	Router.Get("/login", controllers.LoginHandler)
 	Router.Put("/editprofile", custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.EditProfileHandler)).ServeHTTP)
-	Router.Delete("/deleteuser",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.DeleteClassHandler)))
+	Router.Delete("/deleteuser",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.DeleteUserHandler)))
 	//class routes
 	classRouter:=chi.NewRouter()
 	classRouter.Post("/create", custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.CreateClassHandler)).ServeHTTP)

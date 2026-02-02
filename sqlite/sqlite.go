@@ -13,15 +13,17 @@ import (
 )
 
 func SetupDatabase() *gorm.DB {
-	db, err := gorm.Open(sqlite.Open("malaykadb.db"), &gorm.Config{})
+	db, err := gorm.Open(sqlite.Open("malayka.db"), &gorm.Config{})
 	if err != nil {
 		panic("Failed to connect database")
 	}
 	//ctx:=context.Background()
 	db.AutoMigrate(&models.UserInDatabase{})
-
+	db.AutoMigrate(&models.ClassInDatabase{})
+	db.AutoMigrate(&models.StudentInDatabase{})
 	return db
 }
+//user migrations
 func CreateUserInDatabase(user models.UserInDatabase, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -54,7 +56,7 @@ func DeleteUserFromDatabase(id uint, db *gorm.DB, ctx context.Context) error {
 	result := db.WithContext(dbCtx).Delete(&models.UserInDatabase{}, id)
 	return result.Error
 }
-//TODO: update and delete user functions
+//class migrations
 func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -97,6 +99,7 @@ func UpdateClassInDatabase(oldClassName string, newClassName string, db *gorm.DB
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
+//student migrations
 func CreateStudentInDatabase(student models.StudentInDatabase, db *gorm.DB, ctx context.Context) error {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*3)
 	defer cancel()
@@ -108,5 +111,17 @@ func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) error{
 	defer cancel()
 	var students []models.StudentInDatabase
 	result := db.WithContext(dbCtx).Where("class = ?", classID).Find(&students)
+	return result.Error
+}
+func DeleteStudentFromDatabase(studentID uint, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	result := db.WithContext(dbCtx).Delete(&models.StudentInDatabase{}, studentID)
+	return result.Error
+}
+func UpdateStudentInDatabase(student models.StudentInDatabase, db *gorm.DB, ctx context.Context) error {
+	dbCtx, cancel := context.WithTimeout(ctx, time.Second*5)
+	defer cancel()
+	result := db.WithContext(dbCtx).Save(&student)
 	return result.Error
 }

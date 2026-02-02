@@ -3,10 +3,10 @@ import "gorm.io/gorm"
 type UserInDatabase struct {
 	gorm.Model
 	ID   uint32   
-	Name string 
+	Name string		`gorm:"uniqueIndex"`
 	PhoneNumber string 
 	Password string 
-	Role     uint	
+	Role     string	
 	Class    uint	`gorm:"foreignkey:Class;references:ClassID"`
 }
 type ClassInDatabase struct {
