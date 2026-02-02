@@ -14,7 +14,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// var userPtr *models.User
+// This is working fine
 func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	requestCtx, cancel := context.WithTimeout(ctx, time.Second*15)
@@ -111,7 +111,7 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 	requestCtx, cancel:= context.WithTimeout(r.Context(), 15*time.Second)
 	defer cancel()
 
-	err := migrations.DeleteUserFromDatabase(claims["ID"].(uint), services.DB, requestCtx)
+	err := migrations.DeleteUserFromDatabase(uint(claims["user_id"].(float64)), services.DB, requestCtx)
 	if err != nil {
 		services.RespondWithJson(w, 500, struct{error string}{error:"INTERNAL_SERVER_ERROR"})
 		return
