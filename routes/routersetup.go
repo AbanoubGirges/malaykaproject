@@ -30,7 +30,7 @@ func SetupRouter(portForServer string) *chi.Mux {
 	//class routes
 	classRouter:=chi.NewRouter()
 	classRouter.Post("/create", custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.CreateClassHandler)).ServeHTTP)
-	classRouter.Get("/read",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.ReadClassHandler)).ServeHTTP)
+	classRouter.Get("/read",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.ReadClassHandler)).ServeHTTP)
 	classRouter.Delete("/delete",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.DeleteClassHandler)))
 	classRouter.Put("/update",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.UpdateClassHandler)))
 	Router.Mount("/class", classRouter)

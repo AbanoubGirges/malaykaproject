@@ -31,28 +31,13 @@ func CreateClassHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 func ReadClassHandler(w http.ResponseWriter, r *http.Request) {
-	claimsVal := r.Context().Value("claims")
+	ctx := r.Context()
 
-	claims, ok := claimsVal.(map[string]interface{})
-	if !ok {
-		services.RespondWithJson(w, 401, map[string]string{
-			"error": "INVALID_CLAIMS",
-		})
-		return
-	}
-
-	className, ok := claims["class"].(string)
-	if !ok || className == "" {
-		services.RespondWithJson(w, 401, map[string]string{
-			"error": "INVALID_CLASS",
-		})
-		return
-	}
-
-	readCtx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
+	//fmt.Printf("Reading class: %s\n", className)
+	readCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
 
-	class, err := migrations.ReadClass(className, services.DB, readCtx)
+	class, err := migrations.ReadClass( services.DB, readCtx)
 	if err != nil {
 		if errors.Is(err, context.DeadlineExceeded) {
 			services.RequestTimeout(w, r)
@@ -69,7 +54,6 @@ func ReadClassHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteClassHandler(w http.ResponseWriter, r *http.Request) {
-	panic("NEW CODE INCOMING")
 	ctx := r.Context()
 	requestCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

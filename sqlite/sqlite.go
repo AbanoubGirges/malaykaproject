@@ -70,20 +70,16 @@ func CreateClassInDatabase(className string, db *gorm.DB, ctx context.Context) e
 	result := db.WithContext(dbCtx).Exec(sql)
 	return result.Error
 }
-func ReadClass(className string, db *gorm.DB, ctx context.Context) ([]models.UserInDatabase, error) {
+func ReadClass( db *gorm.DB, ctx context.Context) ([]models.ClassInDatabase, error) {
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
-	var class models.ClassInDatabase
-	var students []models.UserInDatabase
-	classId := db.WithContext(dbCtx).Table("class_in_database").Where("name=?", className).Find(&class)
+	var classes []models.ClassInDatabase
+	//var students []models.UserInDatabase
+	classId := db.WithContext(dbCtx).Table("class_in_databases").Find(&classes)
 	if classId.Error != nil {
 		return nil, classId.Error
 	}
-	result := db.WithContext(dbCtx).Where("class = ?", class.ClassID).Find(&students)
-	if result.Error != nil {
-		return nil, result.Error
-	}
-	return students, nil
+	return classes, nil
 }
 func DeleteClassFromDatabase(className string, db *gorm.DB, ctx context.Context) error {
     dbCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
@@ -121,9 +117,9 @@ func ReadStudent(classID uint, db *gorm.DB, ctx context.Context) ([]models.Stude
 	dbCtx, cancel := context.WithTimeout(ctx, time.Second*10)
 	defer cancel()
 	var students []models.StudentInDatabase
-	fmt.Println("ReadStudent: Looking for class =", classID)
+	//fmt.Println("ReadStudent: Looking for class =", classID)
 	result := db.WithContext(dbCtx).Where("class = ?", classID).Find(&students)
-	fmt.Println("ReadStudent: Found", len(students), "students")
+	//fmt.Println("ReadStudent: Found", len(students), "students")
 	return students, result.Error
 }
 func DeleteStudentFromDatabase(studentID uint, db *gorm.DB, ctx context.Context) error {

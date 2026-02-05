@@ -52,6 +52,15 @@ func CreateStudentHandler(w http.ResponseWriter, r *http.Request) {
 }
 func ReadStudentHandler(w http.ResponseWriter, r *http.Request) {
 	claims := r.Context().Value("claims").(map[string]interface{})
+	//fmt.Println("Claims:",claims)
+	className, ok := claims["class"]
+	if !ok || className == "" {
+		fmt.Printf("Reading students for class: %s\n", className)
+		services.RespondWithJson(w, 401, map[string]string{
+			"error": "INVALID_CLASS",
+		})
+		return
+	}
 	requestCtx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
 	if claims["class"] == nil {
