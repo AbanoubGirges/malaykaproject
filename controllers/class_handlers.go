@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 	"time"
-
+	"errors"
 	"github.com/AbanoubGirges/malaykaproject/services"
 	migrations "github.com/AbanoubGirges/malaykaproject/sqlite"
 	//"github.com/AbanoubGirges/malaykaproject/services"
@@ -32,29 +32,44 @@ func CreateClassHandler(w http.ResponseWriter, r *http.Request) {
 }
 func ReadClassHandler(w http.ResponseWriter, r *http.Request) {
 	claimsVal := r.Context().Value("claims")
+
 	claims, ok := claimsVal.(map[string]interface{})
 	if !ok {
-		fmt.Println("claims missing or wrong type:", claimsVal)
-		services.RespondWithJson(w, 401, struct{ error string }{error: "INVALID_CLAIMS"})
+		services.RespondWithJson(w, 401, map[string]string{
+			"error": "INVALID_CLAIMS",
+		})
 		return
 	}
-	
-	fmt.Println("ReadClassHandler: claims[class] =", claims["class"])
-	readCtx, cancel := context.WithTimeout(r.Context(), time.Second*10)
+
+	className, ok := claims["class"].(string)
+	if !ok || className == "" {
+		services.RespondWithJson(w, 401, map[string]string{
+			"error": "INVALID_CLASS",
+		})
+		return
+	}
+
+	readCtx, cancel := context.WithTimeout(r.Context(), 10*time.Second)
 	defer cancel()
-	class, err := migrations.ReadClass(claims["class"].(string), services.DB, readCtx)
+
+	class, err := migrations.ReadClass(className, services.DB, readCtx)
 	if err != nil {
-		services.RespondWithJson(w, 500, struct{ error string }{error: "FAILED_TO_READ"})
-	}
-	select {
-	case <-readCtx.Done():
-		services.RequestTimeout(w, r)
+		if errors.Is(err, context.DeadlineExceeded) {
+			services.RequestTimeout(w, r)
+			return
+		}
+
+		services.RespondWithJson(w, 500, map[string]string{
+			"error": "FAILED_TO_READ",
+		})
 		return
-	default:
-		services.RespondWithJson(w, 200, class)
 	}
+
+	services.RespondWithJson(w, 200, class)
 }
+
 func DeleteClassHandler(w http.ResponseWriter, r *http.Request) {
+	panic("NEW CODE INCOMING")
 	ctx := r.Context()
 	requestCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
@@ -63,6 +78,7 @@ func DeleteClassHandler(w http.ResponseWriter, r *http.Request) {
 		services.RespondWithJson(w, http.StatusBadRequest, map[string]string{"error": "MISSING_CLASS_NAME"})
 		return
 	}
+	fmt.Printf("Attempting to delete class: %s\n", className)
 	err := migrations.DeleteClassFromDatabase(className, services.DB, requestCtx)
 	if err != nil {
 		services.RespondWithJson(w, http.StatusInternalServerError, map[string]string{"error": "FAILED_TO_DELETE_CLASS"})
