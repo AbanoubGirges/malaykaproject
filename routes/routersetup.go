@@ -24,7 +24,7 @@ func SetupRouter(portForServer string) *chi.Mux {
 	println("Server will start at port:", portForServer)
 	Router.Get("/ready", func(w http.ResponseWriter, r *http.Request) { services.RespondWithJson(w, 200, struct{Message string}{Message: "Server is ready"}) })
 	Router.Post("/signup", controllers.SignupHandler)
-	Router.Get("/login", controllers.LoginHandler)
+	Router.Post("/login", controllers.LoginHandler)
 	Router.Put("/editprofile", custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.EditProfileHandler)).ServeHTTP)
 	Router.Delete("/deleteuser",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.DeleteUserHandler)))
 	//class routes
@@ -33,6 +33,7 @@ func SetupRouter(portForServer string) *chi.Mux {
 	classRouter.Get("/read",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.ReadClassHandler)).ServeHTTP)
 	classRouter.Delete("/delete",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.DeleteClassHandler)))
 	classRouter.Put("/update",custommiddleware.AdminAuthMiddleware(http.HandlerFunc(controllers.UpdateClassHandler)))
+	//classRouter.Post("/attendance",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.CreateClassAttendance)))
 	Router.Mount("/class", classRouter)
 	//student routes
 	studentRouter:=chi.NewRouter()
@@ -40,6 +41,10 @@ func SetupRouter(portForServer string) *chi.Mux {
 	studentRouter.Get("/read",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.ReadStudentHandler)).ServeHTTP)
 	studentRouter.Delete("/delete",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.DeleteStudentHandler)).ServeHTTP)
 	studentRouter.Put("/update",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.UpdateStudentHandler)).ServeHTTP)
-	Router.Mount("/student", studentRouter)
+	studentRouter.Route("/{classId}/attendance",func (r chi.Router)  {
+		r.Post("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.CreateClassAttendance)))
+		//r.Get("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc()))
+	})
+	Router.Mount("/students", studentRouter)
 	return Router
 }

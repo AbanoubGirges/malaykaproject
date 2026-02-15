@@ -21,11 +21,11 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	var user models.User
 	if err := json.NewDecoder(r.Body).Decode(&user); err != nil {
-		services.RespondWithJson(w, 400, struct{error string}{error: "FAILED_TO_DECODE"})
+		services.RespondWithJson(w, 400, struct{Error string}{Error: "FAILED_TO_DECODE"})
 		return
 	}
 	if user.Username == "" || user.PhoneNumber == "" || user.Password == "" {
-		services.RespondWithJson(w, 400, struct{error string}{error: "MISSING_FIELDS"})
+		services.RespondWithJson(w, 400, struct{Error string}{Error: "MISSING_FIELDS"})
 		return
 	}
 
@@ -34,7 +34,7 @@ func SignupHandler(w http.ResponseWriter, r *http.Request) {
 	userInDatabase := services.ToUserInDatabase(user)
 	err := migrations.CreateUserInDatabase(userInDatabase, services.DB, requestCtx)
 	if err != nil {
-		services.RespondWithJson(w, 500, struct{error string}{error: "FAILED_TO_CREATE_USER"})
+		services.RespondWithJson(w, 500, struct{Error string}{Error: "FAILED_TO_CREATE_USER"})
 		return
 	}
 
@@ -52,7 +52,7 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 	var userLogin models.UserLoginRequest
 	if err := json.NewDecoder(r.Body).Decode(&userLogin); err != nil {
-		services.RespondWithJson(w, 400, struct{error string}{error: "FAILED_TO_DECODE"})
+		services.RespondWithJson(w, 400, struct{Error string}{Error: "FAILED_TO_DECODE"})
 		return
 	}
 	//defer services.RespondWithJson(w, 200, struct{}{})
@@ -62,17 +62,17 @@ func LoginHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if errors.Is(err, errors.New("user not found")) {
-		services.RespondWithJson(w, 404, struct{error string}{error: "USER_NOT_FOUND"})
+		services.RespondWithJson(w, 404, struct{Error string}{Error: "USER_NOT_FOUND"})
 		return
 	}
 	err = services.CheckPasswordHash(userLogin.Password, userInDatabase.Password)
 	if err != nil {
-		services.RespondWithJson(w, 401, struct{error string}{error: "INVALID_PASSWORD"})
+		services.RespondWithJson(w, 401, struct{Error string}{Error: "INVALID_PASSWORD"})
 		return
 	}
 	tokenString, err := services.GenerateJWT(userInDatabase, services.SecretKey)
 	if err != nil {
-		services.RespondWithJson(w, 500, struct{error string}{error: "FAILED_TO_GENERATE_TOKEN"})
+		services.RespondWithJson(w, 500, struct{Error string}{Error: "FAILED_TO_GENERATE_TOKEN"})
 		return
 	}
 	select {
@@ -97,12 +97,12 @@ func EditProfileHandler(w http.ResponseWriter, r *http.Request) {
 	newValue:=r.URL.Query().Get("value")
 	fmt.Printf("value= %v",newValue)
 	if editField=="" || newValue==""{
-		services.RespondWithJson(w,400,struct{error string}{error:"MISSING_FIELDS"})
+		services.RespondWithJson(w,400,struct{Error string}{Error:"MISSING_FIELDS"})
 		return
 	}
 	err:=migrations.UpdateUserInDatabaseField(uint(claims["user_id"].(float64)), editField, newValue, services.DB, requestCtx)
 	if err!=nil{
-		services.RespondWithJson(w,500,struct{error string}{error:"INTERNAL_SERVER_ERROR"})
+		services.RespondWithJson(w,500,struct{Error string}{Error:"INTERNAL_SERVER_ERROR"})
 		return
 	}
 }
@@ -113,8 +113,8 @@ func DeleteUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	err := migrations.DeleteUserFromDatabase(uint(claims["user_id"].(float64)), services.DB, requestCtx)
 	if err != nil {
-		services.RespondWithJson(w, 500, struct{error string}{error:"INTERNAL_SERVER_ERROR"})
+		services.RespondWithJson(w, 500, struct{Error string}{Error:"INTERNAL_SERVER_ERROR"})
 		return
 	}
-	services.RespondWithJson(w, 200, struct{message string}{message:"User deleted successfully"})
+	services.RespondWithJson(w, 200, struct{Message string}{Message:"User deleted successfully"})
 }

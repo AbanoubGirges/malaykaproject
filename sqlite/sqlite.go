@@ -21,6 +21,7 @@ func SetupDatabase() *gorm.DB {
 	db.AutoMigrate(&models.UserInDatabase{})
 	db.AutoMigrate(&models.ClassInDatabase{})
 	db.AutoMigrate(&models.StudentInDatabase{})
+	db.AutoMigrate(&models.AttendaceInDatabase{})
 	return db
 }
 
