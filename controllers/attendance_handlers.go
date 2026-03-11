@@ -49,3 +49,73 @@ func CreateClassAttendance(w http.ResponseWriter, r *http.Request) {
 		services.RespondWithJson(w, 201, map[string]string{"message": "ATTENDANCE_CREATED"})
 	}
 }
+func ReadClassAttendance(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value("claims").(map[string]interface{})
+	requestCtx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	var classId uint
+	if claims["role"] != "admin" {
+		classId = claims["class"].(uint)
+	} else{
+		classId64,err:=strconv.ParseUint(r.URL.Query().Get("class_id"), 10, 0)
+		if err!=nil{
+			services.RespondWithJson(w,500,map[string]string{"error":"FAILED_TO_PARSE_CLASS_ID"})
+			return
+		}
+		classId=uint(classId64)
+	}
+	attendance,err:=migrations.ReadClassAttendanceFromDatabase(classId,r.URL.Query().Get("date"),services.DB,requestCtx)
+	if err!=nil{
+		services.RespondWithJson(w,500,map[string]string{"error":"FAILED_TO_READ_ATTENDANCE"})
+		return
+	}
+	services.RespondWithJson(w,200,attendance)
+}
+func UpdateClassAttendance(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value("claims").(map[string]interface{})
+	requestCtx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	var studentsAttendance models.AttendaceInDatabase
+	//var classId uint
+	if err := json.NewDecoder(r.Body).Decode(&studentsAttendance); err != nil {
+		services.RespondWithJson(w, 400, struct{Error string}{Error: "FAILED_TO_DECODE"})
+		return
+	}
+	studentsAttendance.Blame=claims["userId"].(uint32)
+	err:=migrations.UpdateClassAttendanceInDatabase(studentsAttendance,services.DB,requestCtx)
+	if err!=nil{
+		services.RespondWithJson(w,500,map[string]string{"error":"FAILED_TO_UPDATE_ATTENDANCE"})
+		return
+	}
+	select {
+	case <-requestCtx.Done():
+		services.RespondWithJson(w, 504, map[string]string{"error": "REQUEST_TIMEOUT"})
+		return
+	default:
+		services.RespondWithJson(w, 200, map[string]string{"message": "ATTENDANCE_UPDATED"})
+	}
+}
+func DeleteClassAttendance(w http.ResponseWriter, r *http.Request) {
+	claims := r.Context().Value("claims").(map[string]interface{})
+	requestCtx, cancel := context.WithTimeout(r.Context(), 15*time.Second)
+	defer cancel()
+	var studentsAttendance models.AttendaceInDatabase
+	//var classId uint
+	if err := json.NewDecoder(r.Body).Decode(&studentsAttendance); err != nil {
+		services.RespondWithJson(w, 400, struct{Error string}{Error: "FAILED_TO_DECODE"})
+		return
+	}
+	studentsAttendance.Blame=claims["userId"].(uint32)
+	err:=migrations.DeleteClassAttendanceFromDatabase(studentsAttendance,services.DB,requestCtx)
+	if err!=nil{
+		services.RespondWithJson(w,500,map[string]string{"error":"FAILED_TO_DELETE_ATTENDANCE"})
+		return
+	}
+	select {
+	case <-requestCtx.Done():
+		services.RespondWithJson(w, 504, map[string]string{"error": "REQUEST_TIMEOUT"})
+		return
+	default:
+		services.RespondWithJson(w, 200, map[string]string{"message": "ATTENDANCE_DELETED"})
+	}
+}

@@ -43,7 +43,9 @@ func SetupRouter(portForServer string) *chi.Mux {
 	studentRouter.Put("/update",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.UpdateStudentHandler)).ServeHTTP)
 	studentRouter.Route("/{classId}/attendance",func (r chi.Router)  {
 		r.Post("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.CreateClassAttendance)))
-		//r.Get("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc()))
+		r.Get("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.ReadClassAttendance)))
+		r.Put("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.UpdateClassAttendance)))
+		r.Delete("/{date}",custommiddleware.UserAuthMiddleware(http.HandlerFunc(controllers.DeleteClassAttendance)))
 	})
 	Router.Mount("/students", studentRouter)
 	return Router
